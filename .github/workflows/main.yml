@@ -9,17 +9,21 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
+    - name: Install UPX
+      run: choco install upx
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.23'
 
     - name: Build the application
-      run: go build -o bin/curl_wrapper.exe main.go
+      run: go build -ldflags="-s -w" -o bin/curl_wrapper.exe main.go
+
+    - name: Compress with UPX
+      run: upx --best --lzma -o bin/dandanplay.exe bin/curl_wrapper.exe
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: curl_wrapper
-        path: bin/curl_wrapper.exe
+        name: dandanplay
+        path: bin/dandanplay.exe
