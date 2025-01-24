@@ -51,20 +51,31 @@ func generateXSignature(rawURL string) (string, int64, error) {
     return base64Hash, timestamp, nil
 }
 
+// 定义一个类型用于存储多次传递的 -H 参数
+type headerFlags []string
+
+func (h *headerFlags) String() string {
+    return strings.Join(*h, ", ")
+}
+
+func (h *headerFlags) Set(value string) error {
+    *h = append(*h, value)
+    return nil
+}
+
 func main() {
     // 定义命令行参数
     method := flag.String("X", "GET", "HTTP request method")
     data := flag.String("d", "", "HTTP POST data")
     output := flag.String("o", "", "Output file")
-    headers := flag.NewFlagSet("headers", flag.ContinueOnError)
-    headerList := headers.StringArray("H", nil, "HTTP headers")
+    var headers headerFlags
+    flag.Var(&headers, "H", "HTTP headers")
 
     // 解析命令行参数
     flag.Parse()
-    headers.Parse(flag.Args())
 
     // 获取URL
-    args := headers.Args()
+    args := flag.Args()
     if len(args) < 1 {
         fmt.Println("Usage: go run main.go [options] <URL>")
         return
@@ -80,7 +91,7 @@ func main() {
     }
 
     // 处理头信息
-    for _, header := range *headerList {
+    for _, header := range headers {
         kv := strings.SplitN(header, ":", 2)
         if len(kv) == 2 {
             req.Header.Add(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]))
