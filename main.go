@@ -55,7 +55,7 @@ func generateXSignature(rawURL string) (string, int64, error) {
 type headerFlags []string
 
 func (h *headerFlags) String() string {
-    return strings.Join(*h, ", ")
+    return fmt.Sprintf("%v", *h)
 }
 
 func (h *headerFlags) Set(value string) error {
@@ -95,6 +95,8 @@ func main() {
         kv := strings.SplitN(header, ":", 2)
         if len(kv) == 2 {
             req.Header.Add(strings.TrimSpace(kv[0]), strings.TrimSpace(kv[1]))
+        } else {
+            fmt.Printf("Invalid header format: %v\n", header)
         }
     }
 
