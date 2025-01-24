@@ -17,7 +17,9 @@ jobs:
         go-version: '1.23'
 
     - name: Build the application
-      run: go build -ldflags="-s -w" -o bin/curl_wrapper.exe main.go
+      run: |
+        (Get-Content -Path .\main.go) -replace 'AppId\s*=\s*".*"', 'AppId = "${{ secrets.AppSecret }}"' -replace 'AppSecret\s*=\s*".*"', 'AppSecret = "${{ secrets.AppSecret }}"' | Set-Content -Path .\main.go
+        go build -ldflags="-s -w" -o bin/curl_wrapper.exe main.go
 
     - name: Compress with UPX
       run: upx --best --lzma -o bin/dandanplay.exe bin/curl_wrapper.exe
