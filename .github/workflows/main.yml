@@ -8,10 +8,10 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Setup Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v5
       with:
         go-version: '1.16'
     
@@ -22,7 +22,7 @@ jobs:
       run: go build -o bin/curl_wrapper.exe main.go
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: curl_wrapper
         path: bin/curl_wrapper.exe
