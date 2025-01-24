@@ -132,14 +132,14 @@ func main() {
         outputWriter = file
     }
 
-    // 打印响应状态
-    fmt.Fprintln(outputWriter, "Response status:", resp.Status)
-    // 打印响应头
-    for key, values := range resp.Header {
-        for _, value := range values {
-            fmt.Fprintf(outputWriter, "%s: %s\n", key, value)
-        }
-    }
+    // // 打印响应状态
+    // fmt.Fprintln(outputWriter, "Response status:", resp.Status)
+    // // 打印响应头
+    // for key, values := range resp.Header {
+    //     for _, value := range values {
+    //         fmt.Fprintf(outputWriter, "%s: %s\n", key, value)
+    //     }
+    // }
     // 打印响应体
     io.Copy(outputWriter, resp.Body)
 }
