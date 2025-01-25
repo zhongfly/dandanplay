@@ -34,7 +34,7 @@ jobs:
     - name: Build the application
       shell: bash
       run: |
-        sed -i 's/AppId\s*=\s*".*"/AppId = "${{ secrets.AppSecret }}"/' main.go
+        sed -i 's/AppId\s*=\s*".*"/AppId = "${{ secrets.AppId }}"/' main.go
         sed -i 's/AppSecret\s*=\s*".*"/AppSecret = "${{ secrets.AppSecret }}"/' main.go
         go build -ldflags="-s -w" -o bin/main main.go
         rm -f main.go
