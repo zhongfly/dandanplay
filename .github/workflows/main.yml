@@ -1,31 +1,49 @@
-name: Build and Test Go Application on Windows
+name: Build and Compress Go Application
 
 on:
   workflow_dispatch:
+
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            ext: ""
+          - os: windows-latest
+            ext: ".exe"
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    - name: Install UPX
-      run: choco install upx
+      
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.23'
 
+    - name: Install UPX on Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get update && sudo apt-get install -y upx-ucl
+
+    - name: Install UPX on Windows
+      if: matrix.os == 'windows-latest'
+      run: choco install upx
+
     - name: Build the application
+      shell: bash
       run: |
-        (Get-Content -Path .\main.go) -replace 'AppId\s*=\s*".*"', 'AppId = "${{ secrets.AppSecret }}"' -replace 'AppSecret\s*=\s*".*"', 'AppSecret = "${{ secrets.AppSecret }}"' | Set-Content -Path .\main.go
-        go build -ldflags="-s -w" -o bin/curl_wrapper.exe main.go
+        sed -i 's/AppId\s*=\s*".*"/AppId = "${{ secrets.AppSecret }}"/' main.go
+        sed -i 's/AppSecret\s*=\s*".*"/AppSecret = "${{ secrets.AppSecret }}"/' main.go
+        go build -ldflags="-s -w" -o bin/main main.go
+        rm -f main.go
 
     - name: Compress with UPX
-      run: upx --best --lzma -o bin/dandanplay.exe bin/curl_wrapper.exe
+      run: upx --best --lzma -o bin/dandanplay${{ matrix.ext }} bin/main
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: dandanplay
-        path: bin/dandanplay.exe
+        name: dandanplay${{ matrix.ext }}
+        path: bin/dandanplay${{ matrix.ext }}
