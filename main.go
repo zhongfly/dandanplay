@@ -1,8 +1,10 @@
 package main
 
 import (
+    "crypto/md5"
     "crypto/sha256"
     "encoding/base64"
+    "encoding/json"
     "flag"
     "fmt"
     "io"
@@ -51,6 +53,17 @@ func generateXSignature(rawURL string) (string, int64, error) {
     return base64Hash, timestamp, nil
 }
 
+func generateLoginHash(userName string, password string) (string, int64, error) {
+    timestamp := time.Now().Unix()
+
+    dataToHash := fmt.Sprintf("%s%s%d%s%s", AppId, password, timestamp, userName, AppSecret)
+
+    hash := md5.Sum([]byte(dataToHash))
+    hashString := fmt.Sprintf("%x", hash)
+
+    return hashString, timestamp, nil
+}
+
 // 定义一个类型用于存储多次传递的 -H 参数
 type headerFlags []string
 
@@ -84,7 +97,31 @@ func main() {
 
     // 创建 HTTP 请求
     client := &http.Client{}
+    if strings.HasPrefix(rawURL, "https://api.dandanplay.net/api/v2/login") {
+        var loginData map[string]any
+        if err := json.NewDecoder(strings.NewReader(*data)).Decode(&loginData); err != nil {
+            fmt.Printf("Failed to decode JSON data: %v\n", err)
+            return
+        }
+        username := loginData["userName"]
+        password := loginData["password"]
+        hash, timestamp, err := generateLoginHash(username.(string), password.(string))
+        if err != nil {
+            fmt.Printf("Failed to generate login hash: %v\n", err)
+            return
+        }
+        loginData["hash"] = hash
+        loginData["unixTimestamp"] = timestamp
+        loginData["appId"] = AppId
+        dataBytes, err := json.Marshal(loginData)
+        if err != nil {
+            fmt.Printf("Failed to marshal JSON data: %v\n", err)
+            return
+        }
+        *data = string(dataBytes)
+    }
     req, err := http.NewRequest(*method, rawURL, strings.NewReader(*data))
+
     if err != nil {
         fmt.Printf("Failed to create HTTP request: %v\n", err)
         return
