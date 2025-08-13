@@ -44,10 +44,10 @@ jobs:
         GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -ldflags="-s -w" -o bin/main main.go
         rm -f main.go
 
-    - name: Compress with UPX
+    - name: mv
       run: |
         set +e
-        upx --best --lzma -o bin/dandanplay${{ matrix.ext }} bin/main || mv bin/main bin/dandanplay${{ matrix.ext }}
+        mv bin/main bin/dandanplay${{ matrix.ext }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
